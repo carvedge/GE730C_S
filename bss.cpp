@@ -415,7 +415,28 @@ void bss::send_require_wakeup(){
     send(0x05);
 }
 void bss::send_require_capture(){
+    printf("bss require capture\n");
+    unsigned char ret_dat[1500];
+    unsigned char Head[2];
+    unsigned char packet_length[2];
+    ret_dat[0] = 0xA5;
+    ret_dat[1] = 0x5A;
 
+   
+    int length = 2+2+17+1+1+2;
+    ret_dat[2] = length& 0xFF;
+    ret_dat[3] = (length>>8)& 0xFF;
+   
+    memcpy(ret_dat+4, Bid, 17);
+    ret_dat[21] = 0x23;
+    ret_dat[22] = 0x00;
+    
+    unsigned short crc = RTU_CRC( ret_dat, length-2 );     
+    ret_dat[24] = crc>>8 & 0xFF;
+    ret_dat[23] = crc & 0xFF;
+    socket_.async_write_some(boost::asio::buffer(ret_dat, length),
+                             boost::bind(&bss::handle_write, shared_from_this(),
+                                         boost::asio::placeholders::error()));
 }
 void bss::send_require_config(char*d1,char*d2,char*d3,char*d4,char*d5,char*d6,char*d7,char*d8,char*d9){
     int length = 2+2+17+1*9+4+2;
