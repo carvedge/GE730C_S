@@ -71,7 +71,8 @@ bool bsv::conToDb(){
 void bsv::execDBMonitor(char * sql){
     mysql_query(con,sql);
 }
-void bsv::execDBMonitor(){
+void bsv::execDBMonitor()
+{
 
         sprintf(sql,"select * from xts");
         mysql_query(con,sql);
@@ -120,10 +121,54 @@ void bsv::execDBMonitor(){
                             else if(5 == pm1){
                                 _it->second->send_require_capture();
                             }
-                            else if(6 == pm1){
-                                _it->second->send_require_wakeup();  
+                            else if(6 == pm1)
+                            {
+                                    int pm2 = atoi(row[3]);
+                                    gettimeofday(&time_val,&tz);
+                                    int current_time = time_val.tv_sec;
+                                    map<const char*,int>::iterator _it_wake = map_wake_count.begin();
+                                    while(_it_wake != map_wake_count.end())
+                                    {
+                                        if(ucharCmp((unsigned char*)_it_wake->first,(unsigned char*)bid,17)==0)
+                                        {
+                                             break;
+                                        }
+                                        ++_it_wake;
+                                    }
+                                    if(_it_wake->second == 0)
+                                    {
+                                        _it_wake->second  = 1;
+                                    }
+                                    else if(_it_wake->second  == 1)
+                                    {
+                                        _it->second->send_require_wakeup();
+                                        _it_wake->second  = 2;
+                                        break;//break跳转,数据库中的本条命令不删除
+                                    }
+                                    else if(((current_time - pm2) > 120)&&(_it_wake->second == 2))
+                                    {
+                                        _it->second->send_require_wakeup();
+                                        _it_wake->second = 3;
+                                        break;//break跳转,数据库中的本条命令不删除
+                                    }
+                                    else if(((current_time - pm2) > 240)&&(_it_wake->second == 3))
+                                    {
+                                        _it->second->send_require_wakeup();
+                                        _it_wake->second = 4;
+                                        break;//break跳转,数据库中的本条命令不删除
+                                    }
+                                    else if(((current_time - pm2) > 360)&&(_it_wake->second == 4))
+                                    {
+                                        std::string str_bid(bid);
+                                        _it->second->execXBeat(str_bid, 4);//清除一键巡视命令
+                                        _it_wake->second = 1;
+                                        //没有break删除数据库中的本条命令
+                                    }
+                                    else
+                                        break;
                             }
-                            else if(7 == pm1){
+                            else if(7 == pm1)
+                            {
                                 _it->second->send_require_config(row[4],row[5],row[6],row[7],row[8],row[9],row[10],row[11],row[12]);  
                             }
                             char* deleteSql = (char*)malloc(100);
@@ -137,19 +182,12 @@ void bsv::execDBMonitor(){
                         
                     }
                 }
-                map<const char*,bss*>::iterator _it=map_.begin();
-                while(_it!=map_.end())
-                {
-                    //LOG("test map bid is %s\n",_it->first);
-                   // printf("test map bid is %s\n",_it->first);
-                    ++_it;
-                }
-                
             }
             mysql_free_result(res);//释放结果集使用的内存
         }
     
 }
+
 void bsv::handle_timeout(const boost::system::error_code& error)
 {
     if (error)

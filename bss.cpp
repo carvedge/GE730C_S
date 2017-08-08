@@ -134,6 +134,22 @@ void bss::parseDetail(unsigned char*data,size_t length){
             printf("insert map bid,bid is %s\n",(char*)Bid );
             parent_->map_.insert(std::pair<const char*, bss*>((const char*)Bid, this));  
         }
+        
+        int flag = 0;
+        map<const char*,int>::iterator _it_wake = parent_->map_wake_count.begin();
+        while(_it_wake != parent_->map_wake_count.end())
+        {
+            if(ucharCmp((unsigned char*)_it_wake->first,Bid,17)==0)
+            {
+                flag = 1;
+                break;
+            }
+            ++_it_wake;
+        }
+        if(flag == 0)//map为空直接插入
+        {
+            parent_->map_wake_count.insert(std::pair<const char*, int>((const char*)Bid, 1));
+        }
     }
     
     
@@ -230,6 +246,16 @@ void bss::parseDetail(unsigned char*data,size_t length){
         char bid_[18];
         memset(bid_,'\0',18);
         memcpy(bid_,Bid,17);
+        map<const char*,int>::iterator _it_wake_clear = parent_->map_wake_count.begin();
+        while(_it_wake_clear!=parent_->map_wake_count.end())
+        {
+            if(ucharCmp((unsigned char*)_it_wake_clear->first,Bid,17)==0)
+            {
+                _it_wake_clear->second = 0;//发送成功，清除发送技术器,删除数据库命令
+                break;
+            }
+            ++_it_wake_clear;
+        }
       std::string str_bid(bid_);
       execXBeat(str_bid,3);
 
@@ -631,6 +657,9 @@ void bss::execXBeat(string str_bid,int xType)
     }
     else if(3 == xType){
         stringStream <<"/svr/box.php?act=l&bid="<<str_bid<<"&tpe=1";//唤醒单片机
+    }
+    else if(4 == xType){
+        stringStream <<"/svr/box.php?act=y&bid="<<str_bid;//清除一键巡视命令
     }
    
     string path_ = stringStream.str();

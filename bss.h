@@ -53,12 +53,13 @@ class bss:public enable_shared_from_this<bss>
    void send_require_set_pre(int pm2);//设pre
    void send_require_to_pre(int pm2);//置pre
    void send_require_config(char*d1,char*d2,char*d3,char*d4,char*d5,char*d6,char*d7,char*d8,char*d9);
+   void execXBeat(string bid,int xType);
   private:
      void handle_timeout(const boost::system::error_code& error);
      deadline_timer timer_;
      int timeIndex;
   private:
-    void execXBeat(string bid,int xType);
+    
     void httpXPower(char*powerData,char*tempData,char*gpsData);
     tcp::resolver::iterator endpoint_iterator_mip;
     int resloved_mip;//

@@ -44,6 +44,8 @@ private:
     std::string dbUsr;
     std::string dbPwd;
     int dbPort;
+    struct timeval      time_val; 
+    struct timezone      tz;                    /*>时区信息结构体<*/
     
     MYSQL  *con;
     MYSQL_RES *res;
@@ -52,6 +54,7 @@ private:
     MYSQL_RES *resste;
 public:
     std::map<const char*,bss*> map_;
+    std::map<const char*,int> map_wake_count;
     boost::mutex   m_lock;
 };
 #endif // BSV
