@@ -661,6 +661,9 @@ void bss::execXBeat(string str_bid,int xType)
     else if(4 == xType){
         stringStream <<"/svr/box.php?act=y&bid="<<str_bid;//清除一键巡视命令
     }
+    else if(5 == xType){
+        stringStream <<"/svr/slv.php?act=xts&bid="<<str_bid;//发送唤醒状态给服务器
+    }
    
     string path_ = stringStream.str();
     LOG("execXBeat ,request url is  %s\n",path_.c_str());

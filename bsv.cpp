@@ -149,12 +149,16 @@ void bsv::execDBMonitor()
                                     {
                                         _it->second->send_require_wakeup();
                                         _it_wake->second = 3;
+                                        std::string str_bid(bid);
+                                        _it->second->execXBeat(str_bid, 5);
                                         break;//break跳转,数据库中的本条命令不删除
                                     }
                                     else if(((current_time - pm2) > 240)&&(_it_wake->second == 3))
                                     {
                                         _it->second->send_require_wakeup();
                                         _it_wake->second = 4;
+                                        std::string str_bid(bid);
+                                        _it->second->execXBeat(str_bid, 5);
                                         break;//break跳转,数据库中的本条命令不删除
                                     }
                                     else if(((current_time - pm2) > 360)&&(_it_wake->second == 4))
