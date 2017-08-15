@@ -329,6 +329,14 @@ void bss::parseDetail(unsigned char*data,size_t length){
     // free(powerData);
     // free(tempData);
    }
+   else if(Frame_Type[0] == 0x25)
+   {
+        char bid_[18];
+        memset(bid_,'\0',18);
+        memcpy(bid_,Bid,17);
+        std::string str_bid(bid_);
+        execXBeat(str_bid,5);
+   }
    reply(Frame_Type[0]);
 }
 void bss::send(unsigned char Frame_Type){
@@ -574,6 +582,20 @@ void bss::reply(unsigned char Frame_Type){
         ret_dat[3] = (length>>8)& 0xFF;
         memcpy(ret_dat+4, Bid, 17);
         ret_dat[21] = 0x12;
+        unsigned short crc = RTU_CRC( ret_dat, length-2 );     
+        ret_dat[23] = crc>>8 & 0xFF;
+        ret_dat[22] = crc & 0xFF;
+        socket_.async_write_some(boost::asio::buffer(ret_dat, length),
+                                 boost::bind(&bss::handle_write, shared_from_this(),
+                                             boost::asio::placeholders::error()));
+
+    }
+    else if(Frame_Type == 0x25){
+       int length = 2+2+17+1+2;
+        ret_dat[2] = length& 0xFF;
+        ret_dat[3] = (length>>8)& 0xFF;
+        memcpy(ret_dat+4, Bid, 17);
+        ret_dat[21] = 0x26;
         unsigned short crc = RTU_CRC( ret_dat, length-2 );     
         ret_dat[23] = crc>>8 & 0xFF;
         ret_dat[22] = crc & 0xFF;
